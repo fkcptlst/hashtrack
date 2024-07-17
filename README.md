@@ -7,7 +7,7 @@ A simple tool to track the hash of files in case you need to verify them later.
 ```bash
 git clone https://github.com/fkcptlst/hashtrack.git
 cd hashtrack
-pip install .
+pip install -e .
 ```
 
 ## Usage
