@@ -1,0 +1,12 @@
+extensions:  # ".ext"
+  - ".ckpt"
+  - ".pth"
+  - ".pt"
+  - ".h5"
+  - ".onnx"
+  - ".safetensors"
+  - ".pkl"
+  - ".npy"
+
+search_dirs:  # list[str]
+  - "."
