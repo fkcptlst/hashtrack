@@ -46,9 +46,14 @@ def rglob(directory, extensions):
 
 
 def load_config(config_path: Path) -> Dict:
-    with open(config_path, "r") as f:
-        config = yaml.safe_load(f)
-    config = Dict(config)
+    try:
+        with open(config_path, "r") as f:
+            config = yaml.safe_load(f)
+        config = Dict(config)
+    except Exception as e:
+        print(f"Error loading config with exception: {e}. \n"
+              f"Try to reset to default config by `hashtrack config reset`.")
+        exit(1)
 
     if "." in config.search_dirs:
         print("------------------ WARNING ------------------\n"
