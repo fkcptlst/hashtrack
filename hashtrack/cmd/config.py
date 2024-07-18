@@ -42,7 +42,7 @@ def add(extensions, search_dirs):
                 cfg.search_dirs.append(d.strip())
 
     with open(CONFIG_PATH, "w") as f:
-        yaml.dump(dict(cfg), f, default_flow_style=False)
+        yaml.safe_dump(cfg.to_dict(), f, default_flow_style=False)
 
     print("Configuration updated.")
 
@@ -66,7 +66,7 @@ def remove(extensions, search_dirs):
                 cfg.search_dirs.remove(d.strip())
 
     with open(CONFIG_PATH, "w") as f:
-        yaml.dump(dict(cfg), f, default_flow_style=False)
+        yaml.safe_dump(cfg.to_dict(), f, default_flow_style=False)
 
     print("Configuration updated.")
 
@@ -76,4 +76,4 @@ def show():
     """Show the current configuration"""
     abort_if_cache_not_initialized()
     cfg = load_config(CONFIG_PATH)
-    print(yaml.dump(dict(cfg), default_flow_style=False))
+    print(yaml.safe_dump(cfg.to_dict(), default_flow_style=False))

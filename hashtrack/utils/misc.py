@@ -16,7 +16,7 @@ def get_file_status(cache, f) -> Tuple[FileStatus, str]:
         f = Path(f)
 
     if not f.exists():
-        return FileStatus.REMOVED, "-"*32
+        return FileStatus.REMOVED, "-" * 32
 
     md5 = hashlib.md5(f.read_bytes()).hexdigest()
 
@@ -48,7 +48,18 @@ def rglob(directory, extensions):
 def load_config(config_path: Path) -> Dict:
     with open(config_path, "r") as f:
         config = yaml.safe_load(f)
-    return Dict(config)
+    config = Dict(config)
+
+    if "." in config.search_dirs:
+        print("------------------ WARNING ------------------\n"
+              "Detected '.' in search_dirs.\n"
+              "This is the default behavior. However, it is recommended to specify the search directories (checkpoint directories) explicitly to increase efficiency.\n"
+              "Example:\n"
+              "\t`hashtrack config add --search_dirs=your_checkpoint_dir`\n"
+              "\t`hashtrack config remove '.'`\n"
+              "---------------------------------------------\n")
+
+    return config
 
 
 def load_cache(cache_path: Path) -> Dict:
