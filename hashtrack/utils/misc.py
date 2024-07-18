@@ -1,12 +1,34 @@
+import hashlib
 import json
 import os
 import time
 from pathlib import Path
+from typing import Tuple
 
 import yaml
 from addict import Dict
 
-from hashtrack.utils.constants import TRACK_DIR
+from hashtrack.utils.constants import TRACK_DIR, FileStatus
+
+
+def get_file_status(cache, f) -> Tuple[FileStatus, str]:
+    if isinstance(f, str):
+        f = Path(f)
+
+    if not f.exists():
+        return FileStatus.REMOVED, "-"*32
+
+    md5 = hashlib.md5(f.read_bytes()).hexdigest()
+
+    if not str(f) in cache:  # new file
+        return FileStatus.NEW, md5
+    else:  # existing file
+        if cache[str(f)]["md5"] != md5:
+            if cache[str(f)]["modified"] < f.stat().st_mtime:
+                return FileStatus.MODIFIED, md5
+            return FileStatus.CORRUPTED, md5
+
+        return FileStatus.UNCHANGED, md5
 
 
 def abort_if_cache_not_initialized():

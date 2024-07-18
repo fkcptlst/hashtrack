@@ -1,12 +1,13 @@
 import hashlib
+from collections import defaultdict
 from pathlib import Path
 
 import click
 
 from hashtrack import cli
-from hashtrack.utils.constants import CACHE_PATH
-from hashtrack.utils.log import log_modified, log_removed, log_unchanged
-from hashtrack.utils.misc import abort_if_cache_not_initialized, load_cache
+from hashtrack.utils.constants import CACHE_PATH, FileStatus
+from hashtrack.utils.log import fmt_log
+from hashtrack.utils.misc import abort_if_cache_not_initialized, load_cache, get_file_status
 
 
 @cli.command()
@@ -23,32 +24,27 @@ def check(file, verbose):
         if file.is_file():
             if file.is_absolute():  # if is_absolute, convert to relative path
                 file = file.relative_to(Path.cwd())
-            if str(file) in cache:
-                if cache[str(file)]["md5"] == hashlib.md5(file.read_bytes()).hexdigest():
-                    log_unchanged(f"{str(file)}")
-                else:
-                    log_modified(f"{str(file)}")
-            else:
-                log_removed(f"{str(file)}")
+
+            file_status, md5 = get_file_status(cache, file)
+            fmt_log(file_status, md5, str(file))
         else:
             print("You must provide a valid file path (not a directory).")
 
         return
 
-    modified, removed, unchanged = 0, 0, 0
+    counter = defaultdict(int)
 
     for k, v in cache.items():
-        if not Path(k).is_file():
-            log_removed(f"{k}")
-            removed += 1
-        else:
-            if v["md5"] != hashlib.md5(Path(k).read_bytes()).hexdigest():
-                log_modified(f"{k}")
-                modified += 1
-                continue
+        file_status, md5 = get_file_status(cache, Path(k))
+        counter[file_status] += 1
 
-            unchanged += 1
-            if verbose:
-                log_unchanged(f"{k}")
+        if not verbose and file_status == FileStatus.UNCHANGED:
+            continue
+        fmt_log(file_status, md5, k)
 
-    print(f"Modified: {modified}, Removed: {removed}, Unchanged: {unchanged}")
+    print(f"\nSummary:\n"
+          f"Unchanged: {counter[FileStatus.UNCHANGED]}\n"
+          f"New: {counter[FileStatus.NEW]}\n"
+          f"Modified: {counter[FileStatus.MODIFIED]}\n"
+          f"Removed: {counter[FileStatus.REMOVED]}\n"
+          f"Corrupted: {counter[FileStatus.CORRUPTED]}")

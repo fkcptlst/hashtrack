@@ -1,13 +1,19 @@
-import hashlib
 import json
 from pathlib import Path
 
 import click
 
 from hashtrack import cli
-from hashtrack.utils.constants import CACHE_PATH, CONFIG_PATH
-from hashtrack.utils.log import log_new, log_modified, log_removed
-from hashtrack.utils.misc import abort_if_cache_not_initialized, load_config, load_cache, rglob, write_cache_
+from hashtrack.utils.constants import CACHE_PATH, CONFIG_PATH, FileStatus
+from hashtrack.utils.log import fmt_log
+from hashtrack.utils.misc import (
+    abort_if_cache_not_initialized,
+    load_config,
+    load_cache,
+    rglob,
+    write_cache_,
+    get_file_status
+)
 
 
 @cli.command()
@@ -20,45 +26,42 @@ def update(strict):
     abort_if_cache_not_initialized()
     cfg = load_config(CONFIG_PATH)
 
-    search_dirs = set([Path(d) for d in cfg.search_dirs])
-
-    matched_files = []
-    for d in search_dirs:
-        for f in rglob(str(d), cfg.extensions):
-            if f.is_file():
-                matched_files.append(f)
-
     cache = load_cache(CACHE_PATH)
+
+    search_dirs = set([Path(d) for d in cfg.search_dirs])
 
     cache_modified = False
 
-    for f in matched_files:
-        md5 = hashlib.md5(f.read_bytes()).hexdigest()
-        if not str(f) in cache:  # new file
-            log_new(f"{f}")
+    file_paths = []
+    for d in search_dirs:
+        for f in rglob(str(d), cfg.extensions):
+            file_paths.append(f)
+
+            file_status, md5 = get_file_status(cache, f)
+            if file_status == FileStatus.UNCHANGED:
+                continue
+            if strict and file_status != FileStatus.NEW:  # only allow adding new entries
+                fmt_log(file_status, md5, str(f), skipped_update=True)
+                continue
+
+            # Update cache
             write_cache_(cache, rel_path=f, md5=md5)
             cache_modified = True
-        else:  # existing file
-            if cache[str(f)]["md5"] != md5:
-                if strict:
-                    log_modified(f"{f} (skipped)")
-                else:
-                    log_modified(f"{f}")
-                    write_cache_(cache, rel_path=f, md5=md5)
-                    cache_modified = True
+            fmt_log(file_status, md5, str(f))
 
-    # check for removed files
-    removed_files = set(cache.keys()) - set([str(f) for f in matched_files])
-    for f in removed_files:
+    remaining_files = set(cache.keys()) - set([str(f) for f in file_paths])
+    for f in remaining_files:
+        file_status, md5 = FileStatus.REMOVED, "-" * 32
         if strict:
-            log_removed(f"{f} (skipped)")
-        else:
-            log_removed(f"{f}")
-            del cache[f]
-            cache_modified = True
+            fmt_log(file_status, md5, f, skipped_update=True)
+            continue
+
+        fmt_log(file_status, md5, f)
+        del cache[str(f)]
+        cache_modified = True
 
     if not cache_modified:
-        print("Cache not updated.")
+        print("Cache is up-to-date.")
         return
 
     key = input("Update cache? [y/n]: ")
@@ -67,4 +70,4 @@ def update(strict):
             json.dump(cache, f, indent=4)
         print("Cache updated.")
     else:
-        print("Cache not updated.")
+        print("Aborted.")
