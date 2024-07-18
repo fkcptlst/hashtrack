@@ -61,7 +61,7 @@ def load_config(config_path: Path) -> Dict:
               "This is the default behavior. However, it is recommended to specify the search directories (checkpoint directories) explicitly to increase efficiency.\n"
               "Example:\n"
               "\t`hashtrack config add --search_dirs=your_checkpoint_dir`\n"
-              "\t`hashtrack config remove '.'`\n"
+              "\t`hashtrack config remove --search_dirs='.'`\n"
               "---------------------------------------------\n")
 
     return config
