@@ -10,3 +10,8 @@ extensions:  # ".ext"
 
 search_dirs:  # list[str]
   - "."
+
+# if current time - modification_time > min_update_interval, then file is considered to be updated
+watch:
+  min_update_interval: 60  # seconds
+  sleep_interval: 5  # seconds

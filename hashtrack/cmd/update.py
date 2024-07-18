@@ -45,10 +45,13 @@ def update(strict, y):
                 fmt_log(file_status, md5, str(f), skipped_update=True)
                 continue
 
-            # Update cache
-            write_cache_(cache, rel_path=f, md5=md5)
-            cache_modified = True
-            fmt_log(file_status, md5, str(f))
+            if file_status != FileStatus.CORRUPTED:
+                # Update cache
+                write_cache_(cache, rel_path=f, md5=md5)
+                cache_modified = True
+                fmt_log(file_status, md5, str(f))
+            else:
+                fmt_log(file_status, md5, str(f), skipped_update=True)
 
     remaining_files = set(cache.keys()) - set([str(f) for f in file_paths])
     for f in remaining_files:

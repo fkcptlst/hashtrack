@@ -1,1 +1,1 @@
-from hashtrack.cmd import config, init, update, check, cache
+from hashtrack.cmd import config, init, update, check, cache, watch
