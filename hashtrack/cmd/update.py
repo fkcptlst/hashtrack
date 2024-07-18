@@ -19,7 +19,8 @@ from hashtrack.utils.misc import (
 @cli.command()
 @click.option("--strict", is_flag=True, default=False,
               help="Only allows adding new entries, not modifying existing ones.")
-def update(strict):
+@click.option("-y", is_flag=True, default=False, help="Skip confirmation prompt.")
+def update(strict, y):
     """Scan for new/modified/removed files and update the cache."""
     print(f"Updating cache{' (strict)' if strict else ''}...")
 
@@ -64,7 +65,11 @@ def update(strict):
         print("Cache is up-to-date.")
         return
 
-    key = input("Update cache? [y/n]: ")
+    if y:
+        key = "y"
+    else:
+        key = input("Update cache? [y/n]: ")
+
     if key.lower() == "y":
         with open(CACHE_PATH, "w") as f:
             json.dump(cache, f, indent=4)
