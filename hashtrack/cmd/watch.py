@@ -49,7 +49,7 @@ def watch(strict):
                     fmt_log(file_status, md5, str(f), skipped_update=True)
                     continue
                 elif (
-                        file_status == FileStatus.MODIFIED
+                        (file_status == FileStatus.MODIFIED or file_status == FileStatus.NEW)
                         and time.time() - f.stat().st_mtime > cfg.watch.min_update_interval
                 ):
                     # Update cache
