@@ -26,7 +26,7 @@ dev = [
 ]
 
 [tool.setuptools]
-packages = ["hashtrack", "hashtrack.cmd", "hashtrack.utils"]
+packages = ["hashtrack"]
 
 # cli entrypoint
 [project.scripts]

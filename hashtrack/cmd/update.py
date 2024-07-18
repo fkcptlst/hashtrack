@@ -1,3 +1,4 @@
+import hashlib
 import json
 from pathlib import Path
 
@@ -6,7 +7,7 @@ import click
 from hashtrack import cli
 from hashtrack.utils.constants import CACHE_PATH, CONFIG_PATH
 from hashtrack.utils.log import log_new, log_modified, log_removed
-from hashtrack.utils.misc import abort_if_cache_not_initialized, load_config, load_cache, get_info, rglob
+from hashtrack.utils.misc import abort_if_cache_not_initialized, load_config, load_cache, rglob, write_cache_
 
 
 @cli.command()
@@ -32,17 +33,18 @@ def update(strict):
     cache_modified = False
 
     for f in matched_files:
+        md5 = hashlib.md5(f.read_bytes()).hexdigest()
         if not str(f) in cache:  # new file
             log_new(f"{f}")
-            cache[str(f)] = get_info(f)
+            write_cache_(cache, rel_path=f, md5=md5)
             cache_modified = True
         else:  # existing file
-            if cache[str(f)] != get_info(f):
+            if cache[str(f)]["md5"] != md5:
                 if strict:
                     log_modified(f"{f} (skipped)")
                 else:
                     log_modified(f"{f}")
-                    cache[str(f)] = get_info(f)
+                    write_cache_(cache, rel_path=f, md5=md5)
                     cache_modified = True
 
     # check for removed files
@@ -56,7 +58,7 @@ def update(strict):
             cache_modified = True
 
     if not cache_modified:
-        print("No changes detected.")
+        print("Cache not updated.")
         return
 
     key = input("Update cache? [y/n]: ")

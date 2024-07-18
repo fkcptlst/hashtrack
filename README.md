@@ -13,18 +13,7 @@ pip install -e .
 ## Usage
 
 ```bash
-Usage: hashtrack [OPTIONS] COMMAND [ARGS]...
-
-Options:
-  --version  Show the version and exit.
-  --help     Show this message and exit.
-
-Commands:
-  cache   Cache commands
-  check   Check if entries in cache is modified (whether the file is...
-  config  Configuration commands
-  init    Initialize HashTrack cache
-  update  Scan for new/modified/removed files and update the cache.
+hashtrack --help
 ```
 
 ## Example

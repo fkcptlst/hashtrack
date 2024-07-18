@@ -1,3 +1,4 @@
+import hashlib
 from pathlib import Path
 
 import click
@@ -5,7 +6,7 @@ import click
 from hashtrack import cli
 from hashtrack.utils.constants import CACHE_PATH
 from hashtrack.utils.log import log_modified, log_removed, log_unchanged
-from hashtrack.utils.misc import abort_if_cache_not_initialized, load_cache, get_info
+from hashtrack.utils.misc import abort_if_cache_not_initialized, load_cache
 
 
 @cli.command()
@@ -18,16 +19,17 @@ def check(file, verbose):
     cache = load_cache(CACHE_PATH)
 
     if file:
-        if Path(file).is_file():
-            if Path(file).is_absolute():  # if is_absolute, convert to relative path
-                file = Path(file).relative_to(Path.cwd())
+        file = Path(file)
+        if file.is_file():
+            if file.is_absolute():  # if is_absolute, convert to relative path
+                file = file.relative_to(Path.cwd())
             if str(file) in cache:
-                if cache[str(file)]["md5"] == get_info(file)["md5"]:
-                    log_unchanged(f"{file}")
+                if cache[str(file)]["md5"] == hashlib.md5(file.read_bytes()).hexdigest():
+                    log_unchanged(f"{str(file)}")
                 else:
-                    log_modified(f"{file}")
+                    log_modified(f"{str(file)}")
             else:
-                log_removed(f"{file}")
+                log_removed(f"{str(file)}")
         else:
             print("You must provide a valid file path (not a directory).")
 
@@ -40,7 +42,7 @@ def check(file, verbose):
             log_removed(f"{k}")
             removed += 1
         else:
-            if v["md5"] != get_info(k)["md5"]:
+            if v["md5"] != hashlib.md5(Path(k).read_bytes()).hexdigest():
                 log_modified(f"{k}")
                 modified += 1
                 continue

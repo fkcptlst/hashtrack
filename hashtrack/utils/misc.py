@@ -1,6 +1,6 @@
-import hashlib
 import json
 import os
+import time
 from pathlib import Path
 
 import yaml
@@ -35,13 +35,15 @@ def load_cache(cache_path: Path) -> Dict:
     return cache
 
 
-def get_info(file_path):
-    """Get the information of a file."""
-    if isinstance(file_path, str):
-        file_path = Path(file_path)
+def write_cache_(cache, *, rel_path, md5):
+    if isinstance(rel_path, str):
+        rel_path = Path(rel_path)
 
-    return {
-        "name": file_path.name,
-        "modified": file_path.stat().st_mtime,
-        "md5": hashlib.md5(file_path.read_bytes()).hexdigest(),
+    cache[str(rel_path)] = {
+        "name": rel_path.name,
+        "modified": rel_path.stat().st_mtime,
+        "md5": md5,
+        "cache_updated_at": time.time()
     }
+
+    return cache
