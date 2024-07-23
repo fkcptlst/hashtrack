@@ -18,11 +18,16 @@ dynamic = ["dependencies"]
 [tool.setuptools.dynamic]
 dependencies = { file = ["requirements.txt"] }
 
+[project.urls]
+Github = "https://github.com/fkcptlst/hashtrack"
+
 # extra dependencies
 [project.optional-dependencies]
 dev = [
     "pytest~=7.4.3",
-    "pytest-cov~=4.1.0"
+    "pytest-cov~=4.1.0",
+    "build",
+    "twine"
 ]
 
 [tool.setuptools]
